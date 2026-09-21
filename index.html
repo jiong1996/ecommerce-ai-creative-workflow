@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>电商 AI 自动化作图工作台</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar left-panel">
+        <div class="brand">
+          <img src="./assets/project-hero.png" alt="工作台视觉" />
+          <div>
+            <strong>商品作图流</strong>
+            <span>节点式 AI 生产线</span>
+          </div>
+        </div>
+
+        <section class="panel-section">
+          <h2>创建节点</h2>
+          <button class="primary action" id="addTextNode">
+            <i data-lucide="type"></i>
+            文本节点
+          </button>
+          <button class="action" id="addImageNode">
+            <i data-lucide="image"></i>
+            图片节点
+          </button>
+          <button class="action" id="addAiTextNode">
+            <i data-lucide="wand-sparkles"></i>
+            AI 生成文本
+          </button>
+          <button class="action" id="addAiImageNode">
+            <i data-lucide="sparkles"></i>
+            AI 生成图片
+          </button>
+        </section>
+
+        <section class="panel-section">
+          <h2>流程控制</h2>
+          <div class="button-grid">
+            <button class="action" id="connectMode">
+              <i data-lucide="git-branch"></i>
+              连接
+            </button>
+            <button class="action" id="autoLayout">
+              <i data-lucide="layout-dashboard"></i>
+              排列
+            </button>
+          </div>
+          <button class="primary action" id="runWorkflow">
+            <i data-lucide="play"></i>
+            自动运行全部节点
+          </button>
+          <button class="action" id="downloadZip">
+            <i data-lucide="archive"></i>
+            下载结果压缩包
+          </button>
+          <button class="action" id="templateLibrary">
+            <i data-lucide="boxes"></i>
+            模板库
+          </button>
+        </section>
+
+        <section class="panel-section compact">
+          <h2>状态</h2>
+          <div class="status-list">
+            <div><span>节点</span><strong id="nodeCount">0</strong></div>
+            <div><span>连线</span><strong id="edgeCount">0</strong></div>
+            <div><span>执行</span><strong id="runState">待运行</strong></div>
+          </div>
+        </section>
+      </aside>
+
+      <main class="workspace">
+        <header class="topbar">
+          <div>
+            <h1>电商 AI 自动化作图网页</h1>
+            <p>上传商品图、填写卖点文案，串联模型节点，批量生成主图、详情文案和最终素材包。</p>
+          </div>
+          <div class="toolbar">
+            <button class="icon-button" id="saveProject" title="保存到浏览器">
+              <i data-lucide="save"></i>
+            </button>
+            <button class="icon-button" id="loadProject" title="读取浏览器保存">
+              <i data-lucide="folder-open"></i>
+            </button>
+            <button class="icon-button danger" id="clearProject" title="清空画布">
+              <i data-lucide="trash-2"></i>
+            </button>
+          </div>
+        </header>
+
+        <section class="canvas-wrap" id="canvasWrap">
+          <div class="stage-size" id="stageSize">
+            <div class="stage" id="stage">
+              <svg class="edges" id="edgeLayer"></svg>
+              <div class="canvas" id="canvas"></div>
+            </div>
+          </div>
+          <div class="connect-hint" id="connectHint">
+            连接模式：先点击上游节点，再点击下游节点
+          </div>
+          <div class="zoom-badge" id="zoomBadge">100%</div>
+        </section>
+      </main>
+
+      <aside class="sidebar right-panel">
+        <section class="panel-section">
+          <h2>节点属性</h2>
+          <div id="emptyInspector" class="empty-state">选择一个节点后编辑内容、提示词和输出类型。</div>
+          <form id="inspector" class="inspector hidden">
+            <label>
+              节点名称
+              <input id="nodeTitle" type="text" />
+            </label>
+            <label id="textEditorWrap">
+              文本内容
+              <textarea id="nodeText" rows="6"></textarea>
+            </label>
+            <label id="promptEditorWrap">
+              AI 提示词
+              <textarea id="nodePrompt" rows="5"></textarea>
+            </label>
+            <label id="imageEditorWrap">
+              图片内容
+              <input id="imageUpload" type="file" accept="image/*" />
+            </label>
+            <label id="outputTypeWrap">
+              输出类型
+              <select id="nodeOutputType">
+                <option value="text">文本</option>
+                <option value="image">图片</option>
+              </select>
+            </label>
+            <div class="image-settings" id="imageSettingsWrap">
+              <label>
+                图片比例
+                <select id="imageRatio">
+                  <option value="smart">智能比例</option>
+                  <option value="1:1">1:1</option>
+                  <option value="2:3">2:3</option>
+                  <option value="3:2">3:2</option>
+                  <option value="3:4">3:4</option>
+                  <option value="4:3">4:3</option>
+                  <option value="16:9">16:9</option>
+                  <option value="9:16">9:16</option>
+                </select>
+              </label>
+              <label>
+                生成张数
+                <input id="imageCount" type="number" min="1" max="8" value="1" />
+              </label>
+              <label>
+                分辨率
+                <select id="imageResolution">
+                  <option value="1K">1K</option>
+                  <option value="2K">2K</option>
+                  <option value="4K">4K</option>
+                </select>
+              </label>
+              <label>
+                质量
+                <select id="imageQuality">
+                  <option value="medium">中</option>
+                  <option value="low">低</option>
+                  <option value="high">高</option>
+                </select>
+              </label>
+            </div>
+            <label>
+              节点备注
+              <input id="nodeNote" type="text" placeholder="如：主图背景、五点描述、促销口播" />
+            </label>
+            <button class="action" type="button" id="runSelectedNode">
+              <i data-lucide="play"></i>
+              运行当前节点
+            </button>
+            <div class="result-panel" id="resultPanel">
+              <div class="result-head">
+                <span>输出结果</span>
+                <button class="tiny-button" type="button" id="copyResult">复制文本</button>
+              </div>
+              <textarea id="nodeResultText" rows="6" readonly></textarea>
+              <div class="result-images" id="nodeResultImages"></div>
+              <div class="empty-state" id="emptyResult">当前节点还没有输出结果。</div>
+            </div>
+            <button class="action danger" type="button" id="deleteNode">
+              <i data-lucide="x"></i>
+              删除节点
+            </button>
+          </form>
+        </section>
+
+        <section class="panel-section">
+          <h2>工作流模板</h2>
+          <form class="template-form">
+            <label>
+              模板名称
+              <input id="templateName" type="text" placeholder="如：主图批量生成流程" />
+            </label>
+            <button class="action primary" type="button" id="saveTemplate">
+              <i data-lucide="save"></i>
+              保存为模板
+            </button>
+            <label>
+              调用模板
+              <select id="templateSelect">
+                <option value="">暂无模板</option>
+              </select>
+            </label>
+            <div class="button-grid">
+              <button class="action" type="button" id="loadTemplate">
+                <i data-lucide="folder-open"></i>
+                调用
+              </button>
+              <button class="action danger" type="button" id="deleteTemplate">
+                <i data-lucide="trash-2"></i>
+                删除
+              </button>
+            </div>
+          </form>
+        </section>
+
+        <section class="panel-section">
+          <h2>模型设置</h2>
+          <form id="modelForm" class="model-form">
+            <label class="toggle-row">
+              <span>模拟模式</span>
+              <input id="mockMode" type="checkbox" checked />
+            </label>
+            <label>
+              模型名称
+              <input id="modelName" type="text" value="ecommerce-creative-v1" />
+            </label>
+            <label>
+              API 地址
+              <input id="apiUrl" type="url" placeholder="https://api.example.com/generate" />
+            </label>
+            <label>
+              API Key
+              <input id="apiKey" type="password" placeholder="可选" />
+            </label>
+            <label>
+              请求头 JSON
+              <textarea id="headersJson" rows="4">{"Content-Type":"application/json"}</textarea>
+            </label>
+            <label>
+              请求体模板
+              <textarea id="bodyTemplate" rows="7">{
+  "model": "{{model}}",
+  "output_type": "{{outputType}}",
+  "prompt": "{{prompt}}",
+  "image_ratio": "{{imageRatio}}",
+  "image_count": {{imageCount}},
+  "resolution": "{{resolution}}",
+  "quality": "{{quality}}",
+  "inputs": {{inputs}}
+}</textarea>
+            </label>
+            <label>
+              文本结果路径
+              <input id="textResultPath" type="text" value="data.text" />
+            </label>
+            <label>
+              图片结果路径
+              <input id="imageResultPath" type="text" value="data.images" />
+            </label>
+          </form>
+        </section>
+      </aside>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script src="./app.js"></script>
+  </body>
+</html>

@@ -1,279 +1,42 @@
 <!doctype html>
 <html lang="zh-CN">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>电商 AI 自动化作图工作台</title>
-    <link rel="stylesheet" href="./styles.css" />
-  </head>
-  <body>
-    <div class="app-shell">
-      <aside class="sidebar left-panel">
-        <div class="brand">
-          <img src="./assets/project-hero.png" alt="工作台视觉" />
-          <div>
-            <strong>商品作图流</strong>
-            <span>节点式 AI 生产线</span>
-          </div>
-        </div>
-
-        <section class="panel-section">
-          <h2>创建节点</h2>
-          <button class="primary action" id="addTextNode">
-            <i data-lucide="type"></i>
-            文本节点
-          </button>
-          <button class="action" id="addImageNode">
-            <i data-lucide="image"></i>
-            图片节点
-          </button>
-          <button class="action" id="addAiTextNode">
-            <i data-lucide="wand-sparkles"></i>
-            AI 生成文本
-          </button>
-          <button class="action" id="addAiImageNode">
-            <i data-lucide="sparkles"></i>
-            AI 生成图片
-          </button>
-        </section>
-
-        <section class="panel-section">
-          <h2>流程控制</h2>
-          <div class="button-grid">
-            <button class="action" id="connectMode">
-              <i data-lucide="git-branch"></i>
-              连接
-            </button>
-            <button class="action" id="autoLayout">
-              <i data-lucide="layout-dashboard"></i>
-              排列
-            </button>
-          </div>
-          <button class="primary action" id="runWorkflow">
-            <i data-lucide="play"></i>
-            自动运行全部节点
-          </button>
-          <button class="action" id="downloadZip">
-            <i data-lucide="archive"></i>
-            下载结果压缩包
-          </button>
-          <button class="action" id="templateLibrary">
-            <i data-lucide="boxes"></i>
-            模板库
-          </button>
-        </section>
-
-        <section class="panel-section compact">
-          <h2>状态</h2>
-          <div class="status-list">
-            <div><span>节点</span><strong id="nodeCount">0</strong></div>
-            <div><span>连线</span><strong id="edgeCount">0</strong></div>
-            <div><span>执行</span><strong id="runState">待运行</strong></div>
-          </div>
-        </section>
-      </aside>
-
-      <main class="workspace">
-        <header class="topbar">
-          <div>
-            <h1>电商 AI 自动化作图网页</h1>
-            <p>上传商品图、填写卖点文案，串联模型节点，批量生成主图、详情文案和最终素材包。</p>
-          </div>
-          <div class="toolbar">
-            <button class="icon-button" id="saveProject" title="保存到浏览器">
-              <i data-lucide="save"></i>
-            </button>
-            <button class="icon-button" id="loadProject" title="读取浏览器保存">
-              <i data-lucide="folder-open"></i>
-            </button>
-            <button class="icon-button danger" id="clearProject" title="清空画布">
-              <i data-lucide="trash-2"></i>
-            </button>
-          </div>
-        </header>
-
-        <section class="canvas-wrap" id="canvasWrap">
-          <div class="stage-size" id="stageSize">
-            <div class="stage" id="stage">
-              <svg class="edges" id="edgeLayer"></svg>
-              <div class="canvas" id="canvas"></div>
-            </div>
-          </div>
-          <div class="connect-hint" id="connectHint">
-            连接模式：先点击上游节点，再点击下游节点
-          </div>
-          <div class="zoom-badge" id="zoomBadge">100%</div>
-        </section>
-      </main>
-
-      <aside class="sidebar right-panel">
-        <section class="panel-section">
-          <h2>节点属性</h2>
-          <div id="emptyInspector" class="empty-state">选择一个节点后编辑内容、提示词和输出类型。</div>
-          <form id="inspector" class="inspector hidden">
-            <label>
-              节点名称
-              <input id="nodeTitle" type="text" />
-            </label>
-            <label id="textEditorWrap">
-              文本内容
-              <textarea id="nodeText" rows="6"></textarea>
-            </label>
-            <label id="promptEditorWrap">
-              AI 提示词
-              <textarea id="nodePrompt" rows="5"></textarea>
-            </label>
-            <label id="imageEditorWrap">
-              图片内容
-              <input id="imageUpload" type="file" accept="image/*" />
-            </label>
-            <label id="outputTypeWrap">
-              输出类型
-              <select id="nodeOutputType">
-                <option value="text">文本</option>
-                <option value="image">图片</option>
-              </select>
-            </label>
-            <div class="image-settings" id="imageSettingsWrap">
-              <label>
-                图片比例
-                <select id="imageRatio">
-                  <option value="smart">智能比例</option>
-                  <option value="1:1">1:1</option>
-                  <option value="2:3">2:3</option>
-                  <option value="3:2">3:2</option>
-                  <option value="3:4">3:4</option>
-                  <option value="4:3">4:3</option>
-                  <option value="16:9">16:9</option>
-                  <option value="9:16">9:16</option>
-                </select>
-              </label>
-              <label>
-                生成张数
-                <input id="imageCount" type="number" min="1" max="8" value="1" />
-              </label>
-              <label>
-                分辨率
-                <select id="imageResolution">
-                  <option value="1K">1K</option>
-                  <option value="2K">2K</option>
-                  <option value="4K">4K</option>
-                </select>
-              </label>
-              <label>
-                质量
-                <select id="imageQuality">
-                  <option value="medium">中</option>
-                  <option value="low">低</option>
-                  <option value="high">高</option>
-                </select>
-              </label>
-            </div>
-            <label>
-              节点备注
-              <input id="nodeNote" type="text" placeholder="如：主图背景、五点描述、促销口播" />
-            </label>
-            <button class="action" type="button" id="runSelectedNode">
-              <i data-lucide="play"></i>
-              运行当前节点
-            </button>
-            <div class="result-panel" id="resultPanel">
-              <div class="result-head">
-                <span>输出结果</span>
-                <button class="tiny-button" type="button" id="copyResult">复制文本</button>
-              </div>
-              <textarea id="nodeResultText" rows="6" readonly></textarea>
-              <div class="result-images" id="nodeResultImages"></div>
-              <div class="empty-state" id="emptyResult">当前节点还没有输出结果。</div>
-            </div>
-            <button class="action danger" type="button" id="deleteNode">
-              <i data-lucide="x"></i>
-              删除节点
-            </button>
-          </form>
-        </section>
-
-        <section class="panel-section">
-          <h2>工作流模板</h2>
-          <form class="template-form">
-            <label>
-              模板名称
-              <input id="templateName" type="text" placeholder="如：主图批量生成流程" />
-            </label>
-            <button class="action primary" type="button" id="saveTemplate">
-              <i data-lucide="save"></i>
-              保存为模板
-            </button>
-            <label>
-              调用模板
-              <select id="templateSelect">
-                <option value="">暂无模板</option>
-              </select>
-            </label>
-            <div class="button-grid">
-              <button class="action" type="button" id="loadTemplate">
-                <i data-lucide="folder-open"></i>
-                调用
-              </button>
-              <button class="action danger" type="button" id="deleteTemplate">
-                <i data-lucide="trash-2"></i>
-                删除
-              </button>
-            </div>
-          </form>
-        </section>
-
-        <section class="panel-section">
-          <h2>模型设置</h2>
-          <form id="modelForm" class="model-form">
-            <label class="toggle-row">
-              <span>模拟模式</span>
-              <input id="mockMode" type="checkbox" checked />
-            </label>
-            <label>
-              模型名称
-              <input id="modelName" type="text" value="ecommerce-creative-v1" />
-            </label>
-            <label>
-              API 地址
-              <input id="apiUrl" type="url" placeholder="https://api.example.com/generate" />
-            </label>
-            <label>
-              API Key
-              <input id="apiKey" type="password" placeholder="可选" />
-            </label>
-            <label>
-              请求头 JSON
-              <textarea id="headersJson" rows="4">{"Content-Type":"application/json"}</textarea>
-            </label>
-            <label>
-              请求体模板
-              <textarea id="bodyTemplate" rows="7">{
-  "model": "{{model}}",
-  "output_type": "{{outputType}}",
-  "prompt": "{{prompt}}",
-  "image_ratio": "{{imageRatio}}",
-  "image_count": {{imageCount}},
-  "resolution": "{{resolution}}",
-  "quality": "{{quality}}",
-  "inputs": {{inputs}}
-}</textarea>
-            </label>
-            <label>
-              文本结果路径
-              <input id="textResultPath" type="text" value="data.text" />
-            </label>
-            <label>
-              图片结果路径
-              <input id="imageResultPath" type="text" value="data.images" />
-            </label>
-          </form>
-        </section>
-      </aside>
-    </div>
-
-    <div class="toast" id="toast"></div>
-
-    <script src="./app.js"></script>
-  </body>
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>电商 AI 自动化作图工作台</title>
+<style>
+:root{--bg:#f3f4f6;--panel:#fff;--ink:#17202a;--muted:#8a94a3;--line:#e5e7eb;--accent:#14bfd1;--dark:#111827;--danger:#c2414b}*{box-sizing:border-box}body{margin:0;overflow:hidden;background:var(--bg);font-family:Inter,"Microsoft YaHei",system-ui,sans-serif;color:var(--ink)}button,input,textarea,select{font:inherit}.bar{position:fixed;left:84px;right:24px;top:18px;z-index:20;display:flex;align-items:center;gap:14px;min-height:58px;padding:10px 14px;border:1px solid var(--line);border-radius:16px;background:rgba(255,255,255,.88);box-shadow:0 16px 45px rgba(17,24,39,.08);backdrop-filter:blur(18px)}.bar h1{margin:0;font-size:17px}.bar p{margin:3px 0 0;color:var(--muted);font-size:12px}.bar .spacer{flex:1}.side{position:fixed;left:16px;top:50%;z-index:30;display:grid;gap:8px;width:54px;padding:8px;border:1px solid var(--line);border-radius:18px;background:#fff;box-shadow:0 18px 45px rgba(17,24,39,.12);transform:translateY(-50%)}.tool{position:relative;width:38px;height:38px;border:0;border-radius:12px;background:#f6f7f8;cursor:pointer;font-size:18px}.tool.primary{background:var(--dark);color:#fff}.tool.active{outline:2px solid var(--accent)}.tool:after{content:attr(data-tip);position:absolute;left:50px;top:50%;width:max-content;max-width:190px;transform:translateY(-50%);padding:8px 10px;border-radius:10px;background:#111827;color:#fff;font-size:12px;opacity:0;pointer-events:none}.tool:hover:after{opacity:1}.canvasWrap{position:fixed;inset:0;overflow:auto;background-image:linear-gradient(rgba(17,24,39,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(17,24,39,.045) 1px,transparent 1px);background-size:40px 40px}.stageSize{width:2200px;height:1400px;position:relative}.stage{position:relative;width:2200px;height:1400px;transform-origin:0 0}.edges{position:absolute;inset:0;width:2200px;height:1400px;pointer-events:none}.edge{fill:none;stroke:#111827;stroke-width:2}.node{position:absolute;z-index:2;width:250px;min-width:180px;min-height:120px;border:1px solid rgba(223,227,232,.95);border-radius:12px;background:rgba(255,255,255,.96);box-shadow:0 12px 35px rgba(17,24,39,.07);user-select:none}.node.selected{outline:2px solid var(--accent);border-color:var(--accent)}.node.source{outline:3px solid #f7b955}.head{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;padding:8px;color:#8e97a3;font-size:12px;font-weight:700}.body{padding:0 8px 8px}.body textarea{width:100%;min-height:74px;border:0;border-radius:10px;padding:8px;resize:none;background:#fff;color:#111827}.body img{display:block;width:100%;height:160px;object-fit:contain;background:#f7f8fa}.status{display:flex;justify-content:space-between;margin-top:6px;color:#a3acb8;font-size:11px}.add{position:absolute;right:-12px;top:50%;width:24px;height:24px;border:2px solid #fff;border-radius:50%;background:var(--accent);color:#fff;transform:translateY(-50%);cursor:pointer}.mini{margin-top:6px;width:100%;min-height:26px;border:0;border-radius:9px;background:#f3f5f7;cursor:pointer;font-size:12px}.resize{position:absolute;right:0;bottom:0;width:18px;height:18px;cursor:nwse-resize}.resize:after{content:"";position:absolute;right:5px;bottom:5px;width:8px;height:8px;border-right:2px solid #aab2bd;border-bottom:2px solid #aab2bd}.selectBox{position:absolute;z-index:40;border:1px dashed var(--accent);background:rgba(20,191,209,.08);pointer-events:none}.float{position:absolute;z-index:50;display:flex;gap:4px;padding:8px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.96);box-shadow:0 18px 45px rgba(17,24,39,.13);transform:translateX(-50%)}.float button{border:0;border-radius:10px;background:transparent;padding:7px 10px;cursor:pointer}.float button:hover{background:#f3f5f7}.panel{position:fixed;right:18px;top:92px;bottom:18px;z-index:25;width:330px;overflow:auto;padding:16px;border:1px solid var(--line);border-radius:18px;background:rgba(255,255,255,.9);box-shadow:0 20px 60px rgba(17,24,39,.12);backdrop-filter:blur(18px)}.panel h2{margin:0 0 12px;font-size:14px}.panel label{display:grid;gap:6px;margin:10px 0;color:#6b7280;font-size:12px}.panel input,.panel textarea,.panel select{width:100%;border:1px solid var(--line);border-radius:10px;padding:9px;background:#fbfcfd}.row{display:grid;grid-template-columns:1fr 1fr;gap:8px}.action{width:100%;min-height:38px;margin-top:8px;border:0;border-radius:10px;background:#111827;color:#fff;cursor:pointer}.ghost{background:#f3f5f7;color:#111827}.danger{background:var(--danger);color:#fff}.toast{position:fixed;right:22px;bottom:18px;z-index:99;display:none;max-width:330px;padding:12px 14px;border-radius:14px;background:#111827;color:#fff;font-size:13px}.toast.show{display:block}.zoom{position:fixed;right:22px;bottom:18px;z-index:18;padding:8px 10px;border:1px solid var(--line);border-radius:12px;background:#fff;color:#4b5563;font-size:12px}.hint{position:fixed;left:50%;bottom:24px;z-index:20;display:none;transform:translateX(-50%);padding:10px 14px;border-radius:999px;background:#111827;color:#fff}.hint.show{display:block}.templates{position:fixed;left:84px;top:50%;z-index:60;width:280px;max-height:520px;overflow:auto;padding:12px;border:1px solid var(--line);border-radius:18px;background:#fff;box-shadow:0 24px 60px rgba(17,24,39,.16);transform:translateY(-50%)}.templates button{display:block;width:100%;margin:6px 0;padding:10px;border:1px solid var(--line);border-radius:10px;background:#fff;text-align:left;cursor:pointer}.templates small{color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="bar"><div><h1>电商 AI 自动化作图工作台</h1><p>节点式创建图片/文本，串联 AI 节点，自动运行并保存模板。</p></div><div class="spacer"></div><button id="save" class="tool" data-tip="保存项目">💾</button><button id="load" class="tool" data-tip="读取项目">📂</button><button id="clear" class="tool" data-tip="清空画布">🗑</button></div>
+<div class="side"><button id="addText" class="tool primary" data-tip="新增文本节点">T</button><button id="addImage" class="tool" data-tip="新增图片节点">▧</button><button id="addAiText" class="tool" data-tip="AI 文本节点">✦T</button><button id="addAiImage" class="tool" data-tip="AI 图片节点">✦▧</button><button id="connect" class="tool" data-tip="连接/批量连接">⌁</button><button id="runAll" class="tool" data-tip="运行全部">▶</button><button id="tplBtn" class="tool" data-tip="模板库">▣</button><button id="download" class="tool" data-tip="下载结果">↓</button></div>
+<main id="wrap" class="canvasWrap"><div id="stageSize" class="stageSize"><div id="stage" class="stage"><svg id="edges" class="edges"></svg><div id="nodes"></div></div></div></main>
+<aside class="panel"><h2>节点属性</h2><div id="empty">选择节点后编辑内容。</div><div id="editor" style="display:none"><label>名称<input id="title"></label><label id="textBox">内容<textarea id="text"></textarea></label><label id="promptBox">提示词<textarea id="prompt"></textarea></label><label id="imageBox">图片<input id="image" type="file" accept="image/*"></label><label>输出类型<select id="out"><option value="text">文本</option><option value="image">图片</option></select></label><div id="imgSet"><div class="row"><label>比例<select id="ratio"><option>智能比例</option><option>1:1</option><option>2:3</option><option>3:2</option><option>3:4</option><option>4:3</option><option>16:9</option><option>9:16</option></select></label><label>张数<input id="count" type="number" min="1" max="8"></label></div><div class="row"><label>分辨率<select id="res"><option>1K</option><option>2K</option><option>4K</option></select></label><label>质量<select id="quality"><option>中</option><option>低</option><option>高</option></select></label></div></div><button id="runOne" class="action">运行当前节点</button><button id="del" class="action danger">删除节点</button><h2 style="margin-top:18px">输出结果</h2><textarea id="result" rows="7" readonly></textarea></div><h2 style="margin-top:18px">模板</h2><label>模板名称<input id="tplName" placeholder="如：主图流程"></label><button id="saveTpl" class="action">保存当前工作流为模板</button></aside>
+<div id="hint" class="hint"></div><div id="zoom" class="zoom">100%</div><div id="toast" class="toast"></div>
+<script>
+const $=s=>document.querySelector(s),S={nodes:[],edges:[],sel:[],next:1,zoom:1,connect:false,source:[],drag:null,resize:null,marquee:null,pan:null,space:false};
+function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove('show'),2200)}
+function uid(){return'n'+S.next++}function node(id){return S.nodes.find(n=>n.id===id)}function sel(){return S.sel.length?S.sel:[]}function add(kind,out=kind,x=120+S.nodes.length*40,y=120+S.nodes.length*30,from){const n={id:uid(),kind,out,title:kind==='ai'?(out==='image'?'AI 图片生成':'AI 文本生成'):(kind==='image'?'图片节点':'文本节点'),text:kind==='text'?'输入商品卖点或要求':'',prompt:kind==='ai'?'根据输入节点生成适合电商使用的内容。':'',image:'',result:'',x,y,w:kind==='image'?220:250,h:kind==='image'?250:170,ratio:'智能比例',count:1,res:'1K',quality:'中',status:'待执行'};S.nodes.push(n);if(from)link(from,n.id);select([n.id]);render()}function select(ids){S.sel=[...new Set(ids)];edit()}function selected(){return S.sel.map(node).filter(Boolean)}
+function render(){renderNodes();renderEdges();renderFloat();$('#connect').classList.toggle('active',S.connect);$('#hint').classList.toggle('show',S.connect);$('#hint').textContent=S.connect?'连接模式：点源节点再点目标；多选后点其中一个，再点目标可批量连接':'';$('#zoom').textContent=Math.round(S.zoom*100)+'%';$('#stage').style.transform=`scale(${S.zoom})`;$('#stageSize').style.width=2200*S.zoom+'px';$('#stageSize').style.height=1400*S.zoom+'px'}
+function renderNodes(){const box=$('#nodes');box.innerHTML=S.nodes.map(n=>`<article class="node ${S.sel.includes(n.id)?'selected':''} ${S.source.includes(n.id)?'source':''}" data-id="${n.id}" style="left:${n.x}px;top:${n.y}px;width:${n.w}px;height:${n.h}px"><button class="add" data-add="${n.id}">+</button><div class="head"><span>${esc(n.title)}</span><small>${n.kind==='ai'?'AI→'+(n.out==='image'?'图片':'文本'):n.kind==='image'?'图片':'文本'}</small></div><div class="body">${body(n)}<div class="status"><span>${n.status}</span><span>${S.edges.filter(e=>e.to===n.id).length} 入 / ${S.edges.filter(e=>e.from===n.id).length} 出</span></div><button class="mini" data-run="${n.id}">运行此节点</button></div><span class="resize"></span></article>`).join('');box.querySelectorAll('.node').forEach(el=>{el.onpointerdown=down;el.onclick=clickNode});box.querySelectorAll('.add').forEach(b=>b.onclick=e=>{e.stopPropagation();const f=b.dataset.add;add('ai','text',node(f).x+310,node(f).y,f)});box.querySelectorAll('[data-run]').forEach(b=>b.onclick=e=>{e.stopPropagation();run(node(b.dataset.run))});box.querySelectorAll('textarea').forEach(t=>{t.onpointerdown=e=>e.stopPropagation();t.oninput=e=>{const n=node(t.dataset.id);n[t.dataset.f]=t.value;if(n.id===S.sel[0])edit()}});box.querySelectorAll('input[type=file]').forEach(i=>i.onchange=e=>loadImg(i.dataset.id,e.target.files[0]));box.querySelectorAll('.resize').forEach(r=>r.onpointerdown=resizeDown)}
+function body(n){if(n.kind==='image')return n.image?`<img src="${n.image}"><input data-id="${n.id}" type="file" accept="image/*">`:`<input data-id="${n.id}" type="file" accept="image/*">`;if(n.kind==='text')return`<textarea data-id="${n.id}" data-f="text">${esc(n.text)}</textarea>`;return`<textarea data-id="${n.id}" data-f="prompt">${esc(n.prompt)}</textarea>${n.result?`<textarea readonly>${esc(n.result)}</textarea>`:''}`}
+function renderEdges(){const svg=$('#edges');svg.innerHTML=S.edges.map(e=>{const a=node(e.from),b=node(e.to);if(!a||!b)return'';const x1=a.x+a.w,y1=a.y+a.h/2,x2=b.x,y2=b.y+b.h/2,m=Math.max(70,Math.abs(x2-x1)/2);return`<path class="edge" d="M ${x1} ${y1} C ${x1+m} ${y1}, ${x2-m} ${y2}, ${x2} ${y2}"></path>`}).join('')}
+function bounds(ids){const ns=ids.map(node).filter(Boolean);if(!ns.length)return null;const l=Math.min(...ns.map(n=>n.x)),t=Math.min(...ns.map(n=>n.y)),r=Math.max(...ns.map(n=>n.x+n.w)),b=Math.max(...ns.map(n=>n.y+n.h));return{l,t,r,b,w:r-l,h:b-t}}
+function renderFloat(){document.querySelector('.float')?.remove();if(S.sel.length<2)return;const b=bounds(S.sel);const f=document.createElement('div');f.className='float';f.style.left=b.l+b.w/2+'px';f.style.top=Math.max(8,b.t-54)+'px';f.innerHTML='<button data-a="run">运行</button><button data-a="copy">复制</button><button data-a="tpl">存为模板</button>';f.onclick=e=>{const a=e.target.dataset.a;if(a==='run')selected().forEach(run);if(a==='copy')copySel();if(a==='tpl')saveTpl(true)};$('#stage').appendChild(f)}
+function clickNode(e){const id=e.currentTarget.dataset.id;if(!S.connect)return;e.stopPropagation();const src=S.source.length?S.source:[];if(!src.length){S.source=S.sel.length>1&&S.sel.includes(id)?[...S.sel]:[id];toast('已选择连接源，请点击目标节点');render();return}if(src.includes(id)){S.source=[];render();return}let c=0;src.forEach(s=>{if(s!==id){link(s,id);c++}});S.source=[];render();toast('已处理 '+c+' 条连线')}
+function link(a,b){const i=S.edges.findIndex(e=>e.from===a&&e.to===b);if(i>=0)S.edges.splice(i,1);else S.edges.push({from:a,to:b})}
+function down(e){if(e.button||S.space||S.connect||e.target.closest('textarea,input,button,.resize'))return;const el=e.currentTarget,id=el.dataset.id;if(!S.sel.includes(id))select([id]);S.drag={x:e.clientX,y:e.clientY,orig:selected().map(n=>({id:n.id,x:n.x,y:n.y}))};el.setPointerCapture(e.pointerId)}
+function resizeDown(e){e.stopPropagation();const n=node(e.target.closest('.node').dataset.id);select([n.id]);S.resize={id:n.id,x:e.clientX,y:e.clientY,w:n.w,h:n.h};e.target.setPointerCapture(e.pointerId)}
+window.onpointermove=e=>{if(S.marquee){const p=pt(e);S.marquee.x=p.x;S.marquee.y=p.y;drawMarquee();return}if(S.pan){$('#wrap').scrollLeft=S.pan.l-(e.clientX-S.pan.x);$('#wrap').scrollTop=S.pan.t-(e.clientY-S.pan.y);return}if(S.resize){const n=node(S.resize.id);n.w=Math.max(180,S.resize.w+(e.clientX-S.resize.x)/S.zoom);n.h=Math.max(110,S.resize.h+(e.clientY-S.resize.y)/S.zoom);render();return}if(S.drag){const dx=(e.clientX-S.drag.x)/S.zoom,dy=(e.clientY-S.drag.y)/S.zoom;S.drag.orig.forEach(o=>{const n=node(o.id);n.x=Math.max(8,o.x+dx);n.y=Math.max(8,o.y+dy)});render()}};window.onpointerup=()=>{if(S.marquee){selectInMarquee();document.querySelector('.selectBox')?.remove();S.marquee=null;render()}S.drag=S.resize=S.pan=null};
+$('#wrap').onpointerdown=e=>{if(S.space&&e.button===0){S.pan={x:e.clientX,y:e.clientY,l:$('#wrap').scrollLeft,t:$('#wrap').scrollTop};return}if(e.button||S.connect||e.target.closest('.node,.side,.panel,.bar'))return;const p=pt(e);S.marquee={sx:p.x,sy:p.y,x:p.x,y:p.y};select([]);drawMarquee()};function pt(e){const r=$('#stage').getBoundingClientRect();return{x:(e.clientX-r.left)/S.zoom,y:(e.clientY-r.top)/S.zoom}}function drawMarquee(){let b=document.querySelector('.selectBox');if(!b){b=document.createElement('div');b.className='selectBox';$('#stage').appendChild(b)}const m=S.marquee,l=Math.min(m.sx,m.x),t=Math.min(m.sy,m.y),w=Math.abs(m.x-m.sx),h=Math.abs(m.y-m.sy);Object.assign(b.style,{left:l+'px',top:t+'px',width:w+'px',height:h+'px'})}function selectInMarquee(){const m=S.marquee,l=Math.min(m.sx,m.x),t=Math.min(m.sy,m.y),r=Math.max(m.sx,m.x),b=Math.max(m.sy,m.y);select(S.nodes.filter(n=>l<=n.x+n.w&&r>=n.x&&t<=n.y+n.h&&b>=n.y).map(n=>n.id))}
+window.onkeydown=e=>{if(e.target.matches('input,textarea,select'))return;if(e.code==='Space'){e.preventDefault();S.space=true}if(e.key==='Delete'&&S.sel.length)del()};window.onkeyup=e=>{if(e.code==='Space')S.space=false};$('#wrap').onwheel=e=>{e.preventDefault();const z=S.zoom;S.zoom=Math.min(2.5,Math.max(.35,S.zoom*(e.deltaY>0?.925:1.08)));const r=$('#wrap').getBoundingClientRect(),fx=e.clientX-r.left,fy=e.clientY-r.top,cx=($('#wrap').scrollLeft+fx)/z,cy=($('#wrap').scrollTop+fy)/z;render();$('#wrap').scrollLeft=cx*S.zoom-fx;$('#wrap').scrollTop=cy*S.zoom-fy};
+function edit(){const n=node(S.sel[0]);$('#empty').style.display=n?'none':'block';$('#editor').style.display=n?'block':'none';if(!n)return;title.value=n.title;text.value=n.text||'';prompt.value=n.prompt||'';out.value=n.out;ratio.value=n.ratio;count.value=n.count;res.value=n.res;quality.value=n.quality;result.value=n.result||'';textBox.style.display=n.kind==='text'?'grid':'none';promptBox.style.display=n.kind==='ai'?'grid':'none';imageBox.style.display=n.kind==='image'?'grid':'none';imgSet.style.display=n.out==='image'?'block':'none'}
+['title','text','prompt','out','ratio','count','res','quality'].forEach(id=>$('#'+id).oninput=e=>{const n=node(S.sel[0]);if(!n)return;const map={title:'title',text:'text',prompt:'prompt',out:'out',ratio:'ratio',count:'count',res:'res',quality:'quality'};n[map[id]]=e.target.value;render()});image.onchange=e=>loadImg(S.sel[0],e.target.files[0]);function loadImg(id,file){if(!file)return;const r=new FileReader();r.onload=()=>{const n=node(id);n.image=r.result;n.kind='image';render();edit()};r.readAsDataURL(file)}
+function run(n){if(!n)return;n.status='运行中';render();setTimeout(()=>{const ins=S.edges.filter(e=>e.to===n.id).map(e=>node(e.from)).filter(Boolean).map(x=>x.result||x.text||x.title).join('\n');n.result=n.out==='image'?'已模拟生成图片：'+(n.prompt||n.title):`【${n.title}】\n${n.prompt||'根据输入生成电商文案'}\n输入：${ins||'无'}\n输出：高转化卖点、场景说明、标题建议已生成。`;n.status='已完成';render();edit()},400)}
+function copySel(){const map=new Map,ids=[...S.sel],copies=ids.map(id=>{const n={...node(id),id:uid(),x:node(id).x+40,y:node(id).y+40,title:node(id).title+' 副本'};map.set(id,n.id);return n});S.nodes.push(...copies);S.edges.push(...S.edges.filter(e=>map.has(e.from)&&map.has(e.to)).map(e=>({from:map.get(e.from),to:map.get(e.to)})));select(copies.map(n=>n.id));render()}function del(){S.nodes=S.nodes.filter(n=>!S.sel.includes(n.id));S.edges=S.edges.filter(e=>!S.sel.includes(e.from)&&!S.sel.includes(e.to));select([]);render()}function saveTpl(part=false){const name=part?prompt('模板名称','局部模板 '+new Date().toLocaleString()):tplName.value||'工作流模板';if(!name)return;const ids=part?S.sel:S.nodes.map(n=>n.id),set=new Set(ids),data={nodes:S.nodes.filter(n=>set.has(n.id)),edges:S.edges.filter(e=>set.has(e.from)&&set.has(e.to))};const list=JSON.parse(localStorage.templates||'[]');list.unshift({name,data});localStorage.templates=JSON.stringify(list);toast('模板已保存')}function openTpl(){document.querySelector('.templates')?.remove();const list=JSON.parse(localStorage.templates||'[]'),p=document.createElement('div');p.className='templates';p.innerHTML='<b>模板库</b>'+(list.length?'':'<p>暂无模板</p>')+list.map((t,i)=>`<button data-i="${i}">${esc(t.name)}<br><small>${t.data.nodes.length} 节点</small></button>`).join('');p.onclick=e=>{if(e.target.dataset.i!=null){const t=list[e.target.dataset.i].data,off=80,mp=new Map;t.nodes.forEach(o=>{const n={...o,id:uid(),x:o.x+off,y:o.y+off};mp.set(o.id,n.id);S.nodes.push(n)});S.edges.push(...t.edges.map(e=>({from:mp.get(e.from),to:mp.get(e.to)})));select([...mp.values()]);p.remove();render()}};document.body.appendChild(p)}
+function esc(v){return String(v||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}addText.onclick=()=>add('text');addImage.onclick=()=>add('image');addAiText.onclick=()=>add('ai','text');addAiImage.onclick=()=>add('ai','image');connect.onclick=()=>{S.connect=!S.connect;S.source=[];render()};runAll.onclick=()=>S.nodes.forEach(run);tplBtn.onclick=openTpl;runOne.onclick=()=>run(node(S.sel[0]));del.onclick=del;saveTpl.onclick=()=>saveTpl(false);save.onclick=()=>{localStorage.workflow=JSON.stringify(S);toast('已保存')};load.onclick=()=>{Object.assign(S,JSON.parse(localStorage.workflow||'{}'));render();edit()};clear.onclick=()=>confirm('清空画布？')&&(S.nodes=[],S.edges=[],S.sel=[],render(),edit());download.onclick=()=>{const blob=new Blob([JSON.stringify({nodes:S.nodes,edges:S.edges},null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='workflow-results.json';a.click()};
+add('image','image',120,150);add('text','text',120,440);add('ai','text',460,230,S.nodes[0].id);link(S.nodes[1].id,S.nodes[2].id);render();
+</script>
+</body>
 </html>
